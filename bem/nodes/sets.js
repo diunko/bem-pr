@@ -96,7 +96,8 @@ registry.decl(SetsNodeName, nodes.NodeName, {
             var node = new (registry.getNodeClass(SetsLevelNodeName))({
                     root    : this.root,
                     level   : this.rootLevel,
-                    item    : { block : name, tech : 'sets' },
+                    name    : name,
+                    techName : 'sets',
                     sources : sets[name]
                 });
 
@@ -141,8 +142,10 @@ registry.decl(GeneratedLevelNodeName, magicNodes.MagicNodeName, {
         });
 
         this.item = o.item;
-        this.techName = o.techName || o.item.tech;
+        this.techName = o.techName;
         this._level = o.level.dir || o.level;
+
+        this.rootLevel = createLevel(this.root);
 
         this.__base(U.extend({ path : this.__self.createPath(o) }, o));
 
@@ -214,7 +217,7 @@ registry.decl(GeneratedLevelNodeName, magicNodes.MagicNodeName, {
             o.level;
 
         return level
-            .getTech(o.techName || o.item.tech)
+            .getTech(o.techName)
             .getPath(this.createNodePrefix(U.extend({}, o, { level: level })));
 
     },
@@ -239,6 +242,10 @@ registry.decl(SetsLevelNodeName, GeneratedLevelNodeName, {
     __constructor : function(o) {
 
         this.sources = o.sources;
+        this.setsName = o.name;
+
+        o.item || (o.item = { block : o.name, tech : o.techName });
+
         this.__base(o);
 
     },
@@ -308,7 +315,7 @@ registry.decl(SetsLevelNodeName, GeneratedLevelNodeName, {
         return [
             'docs',
             'examples',
-            'test.js'
+            'spec.js'
         ];
     },
 
@@ -366,13 +373,6 @@ registry.decl(SetsLevelNodeName, GeneratedLevelNodeName, {
 
 
 registry.decl(ExamplesLevelNodeName, GeneratedLevelNodeName, {
-
-    __constructor : function(o) {
-
-        this.__base(o);
-        this.rootLevel = createLevel(this.root);
-
-    },
 
     /**
      * @returns {Function}
@@ -526,30 +526,9 @@ registry.decl(ExampleNodeName, bundleNodes.BundleNodeName, {
 
         this.__base(o);
 
-        this.source = o.source; // TODO: source -> sourceLevel
+        this.source = o.source;
+        this.sourceLevel = createLevel(this.source);
         this.rootLevel = createLevel(this.root);
-
-    },
-
-    // KILLME: debug
-    /*
-    make : function() {
-        LOGGER.info(this.ctx.arch.toString());
-        return this.__base();
-    },
-    */
-
-    getTechs : function() {
-
-        return [
-            'bemjson.js',
-            'bemdecl.js',
-            'deps.js',
-            'bemhtml',
-            'css',
-            'js',
-            'html'
-            ];
 
     },
 
@@ -558,7 +537,7 @@ registry.decl(ExampleNodeName, bundleNodes.BundleNodeName, {
         if (!this._sourceNodePrefix) {
             this._sourceNodePrefix = this.__self.createNodePrefix({
                 root: this.root,
-                level: this.source,
+                level: this.sourceLevel.dir,
                 item: this.item
             });
         }
@@ -566,16 +545,37 @@ registry.decl(ExampleNodeName, bundleNodes.BundleNodeName, {
 
     },
 
-    getLevels: function(tech) {
-        return (this.level.getConfig().bundleBuildLevels || [])
-            .concat([this.rootLevel.getTech('blocks').getPath(this.getSourceNodePrefix())]);
+    getTechs : function() {
+
+        return [
+            'bemjson.js',
+            'bemdecl.js',
+            'deps.js',
+            'css',
+            'js',
+            'bemhtml.js',
+            'html'
+            ];
+
     },
 
-    createTechNode: function(tech, bundleNode, magicNode) {
+    getExampleLevels : function(techName) {
+        return this.sourceLevel.getConfig().bundleBuildLevels;
+    },
 
-        // FIXME: example source is hardcoded
+    getLevels : function(techName) {
+
+        var prefix = this.getSourceNodePrefix();
+
+        return [].concat.call(this.getExampleLevels(techName) || [],
+                this.sourceLevel.getTech('blocks').getPath(prefix));
+
+    },
+
+    createTechNode : function(tech, bundleNode, magicNode) {
+
         // NOTE: we use `ExampleSourceNode` to build example's source bundle
-        if(tech === 'bemjson.js')
+        if(tech === this.item.tech)
             return false;
 
         return this.__base.apply(this, arguments);
