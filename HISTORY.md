@@ -1,3 +1,12 @@
+0.0.6 / 2013-02-07 (Unstable)
+==================
+
+  * basic level naming scheme is used for all levels: simple-levels couldn't be resolved properly from the cold run
+  * all levels used common level prototype `bem/levels/sets.js` as base level, to simplify customization proccess
+  * `ExampleNode#getExampleLevels` public method added, to customize set of levels used by building process
+  * by default bem-build used levels, declared by `Level#getConfig` method of example's source level
+    (e.g. `blocks/one/one.examples/.bem/level.js`)
+
 0.0.3 / 2013-01-26
 ==================
 
