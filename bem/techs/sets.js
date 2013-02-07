@@ -2,13 +2,13 @@ var BEM = require('bem'),
     PATH = require('path');
 
 exports.techMixin = {
-        
+
     getBaseLevel : function() {
-        return PATH.resolve(__dirname, '../levels/' + this.getTechName() + '.js');
+        return PATH.resolve(__dirname, '../levels/sets.js');
     },
 
     createByDecl : function(item, level, opts) {
-        
+
         return this.createLevel({
                 outputDir : level.dir,
                 force : opts.force,
