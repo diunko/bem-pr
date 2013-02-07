@@ -49,7 +49,7 @@ MAKE.decl('ExampleNode', {
             ].map(path.resolve.bind(null, this.root));
         }
 
-        this.__base.apply(this, arguments);
+        return this.__base.apply(this, arguments);
     }
 
 });
