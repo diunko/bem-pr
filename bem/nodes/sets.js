@@ -66,22 +66,16 @@ registry.decl(SetsNodeName, nodes.NodeName, {
         var _t = this,
             arch = _t.arch;
 
-        return Q.step(
-                function() {
-                    return Q.call(_t.createCommonSetsNode, _t, parent);
-                },
-                function(common) {
-                    return [
-                        common,
-                        Q.call(_t.createSetsLevelNodes, _t,
-                                parent? [common].concat(parent) : common, children)
-                    ];
-                })
-                .then(function() {
-                    //LOGGER.info(arch.toString());
-                    return arch;
-                })
-                .fail(console.log);
+        return Q.when(_t.createCommonSetsNode.call(_t, parent))
+            .then(function(common) {
+                return Q.call(_t.createSetsLevelNodes, _t,
+                    parent? [common].concat(parent) : common, children);
+            })
+            .then(function() {
+                LOGGER.info(arch.toString());
+                return arch;
+            })
+            .fail(console.log);
 
     },
 
@@ -99,12 +93,12 @@ registry.decl(SetsNodeName, nodes.NodeName, {
         var sets = this.getSets();
         return Object.keys(sets).map(function(name) {
 
-            var node = registry.getNodeClass(SetsLevelNodeName).create({
-                root    : this.root,
-                level   : this.rootLevel,
-                item    : { block : name, tech : 'sets' },
-                sources : sets[name]
-            });
+            var node = new (registry.getNodeClass(SetsLevelNodeName))({
+                    root    : this.root,
+                    level   : this.rootLevel,
+                    item    : { block : name, tech : 'sets' },
+                    sources : sets[name]
+                });
 
             this.arch.setNode(node);
 
@@ -142,16 +136,13 @@ registry.decl(GeneratedLevelNodeName, magicNodes.MagicNodeName, {
 
         Object.defineProperty(this, 'level', {
             get : function() {
-                if(typeof this._level === 'string') {
-                    this._level = createLevel(PATH.resolve(this.root, this._level));
-                }
-                return this._level;
+                return createLevel(PATH.resolve(this.root, this._level));
             }
         });
 
-        this._level = o.level;
         this.item = o.item;
         this.techName = o.techName || o.item.tech;
+        this._level = o.level.dir || o.level;
 
         this.__base(U.extend({ path : this.__self.createPath(o) }, o));
 
@@ -315,6 +306,7 @@ registry.decl(SetsLevelNodeName, GeneratedLevelNodeName, {
 
     getSourceItemTechs : function() {
         return [
+            'docs',
             'examples',
             'test.js'
         ];
