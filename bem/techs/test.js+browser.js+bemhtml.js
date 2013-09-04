@@ -61,8 +61,8 @@ exports.techMixin = {
                     this.context.getLevels(),output,opts)])
             .spread(function(bemhtml, browser, test){
                 var result = browser.js;
-                result.push(test['test.js'] + '\n');
-                result.push(bemhtml['bemhtml.js']+'\n');
+                result.push(test['test.js'].join('') + '\n');
+                result.push(bemhtml['bemhtml.js'] + '\n');
                 return result;
             });
     }
